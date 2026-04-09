@@ -1,0 +1,26 @@
+{
+  "name": "aikido-infra",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy:integration": "cdk deploy AikidoStack-integration --require-approval never",
+    "deploy:production": "cdk deploy AikidoStack-production --require-approval never",
+    "deploy": "npm run deploy:integration",
+    "synth": "cdk synth",
+    "diff:integration": "cdk diff AikidoStack-integration",
+    "diff:production": "cdk diff AikidoStack-production",
+    "bootstrap": "cdk bootstrap"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "aws-cdk-lib": "^2.244.0",
+    "constructs": "^10.5.1"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.1112.0"
+  }
+}
