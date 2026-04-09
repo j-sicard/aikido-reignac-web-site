@@ -13,3 +13,21 @@ variable "aws_region" {
   type        = string
   default     = "eu-west-3"
 }
+
+variable "domain_name" {
+  description = "Nom de domaine principal (prod uniquement)"
+  type        = string
+  default     = ""
+}
+
+variable "acm_certificate_arn" {
+  description = "ARN du certificat ACM us-east-1 (prod uniquement)"
+  type        = string
+  default     = ""
+}
+
+variable "route53_zone_id" {
+  description = "ID de la hosted zone Route 53 (prod uniquement)"
+  type        = string
+  default     = ""
+}

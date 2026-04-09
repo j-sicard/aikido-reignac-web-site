@@ -8,10 +8,10 @@ terraform {
     }
   }
 
-  # Backend S3 pour stocker le state — à configurer selon votre compte
+  # Backend S3 — décommenter et adapter pour stocker le state à distance
   # backend "s3" {
   #   bucket         = "aikido-terraform-state"
-  #   key            = "aikido/terraform.tfstate"
+  #   key            = "aikido/${var.environment}/terraform.tfstate"
   #   region         = "eu-west-3"
   #   dynamodb_table = "aikido-terraform-locks"
   #   encrypt        = true
@@ -33,13 +33,16 @@ provider "aws" {
 locals {
   is_prod     = var.environment == "prod"
   bucket_name = "aikido-regnacais-${var.environment}"
+
+  # Domaines CloudFront — vides en dev, apex + www en prod
+  aliases = local.is_prod ? [var.domain_name, "www.${var.domain_name}"] : []
 }
 
 # ─── S3 Bucket ───────────────────────────────────────────────────────────────
 
 resource "aws_s3_bucket" "site" {
   bucket        = local.bucket_name
-  force_destroy = !local.is_prod # en prod on protège le bucket
+  force_destroy = !local.is_prod
 
   tags = {
     Name = local.bucket_name
@@ -67,7 +70,7 @@ resource "aws_s3_bucket_versioning" "site" {
 
 resource "aws_cloudfront_origin_access_control" "site" {
   name                              = "aikido-oac-${var.environment}"
-  description                       = "OAC for aikido-regnacais-${var.environment}"
+  description                       = "OAC for ${local.bucket_name}"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -79,7 +82,10 @@ resource "aws_cloudfront_distribution" "site" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  price_class         = "PriceClass_100" # Europe + Amérique du Nord
+  price_class         = "PriceClass_100"
+
+  # Aliases uniquement en prod (apex + www)
+  aliases = local.aliases
 
   origin {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
@@ -94,7 +100,7 @@ resource "aws_cloudfront_distribution" "site" {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
 
-    # Cache désactivé en dev, optimisé en prod
+    # Dev : cache désactivé — Prod : cache optimisé
     cache_policy_id = local.is_prod ? "658327ea-f89d-4fab-a63d-7e88639e58f6" : "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
   }
 
@@ -119,8 +125,13 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
+  # Dev : certificat CloudFront par défaut
+  # Prod : certificat ACM aikido-regnacais.fr + *.aikido-regnacais.fr
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = local.is_prod ? false : true
+    acm_certificate_arn            = local.is_prod ? var.acm_certificate_arn : null
+    ssl_support_method             = local.is_prod ? "sni-only" : null
+    minimum_protocol_version       = local.is_prod ? "TLSv1.2_2021" : null
   }
 
   tags = {
@@ -152,4 +163,34 @@ resource "aws_s3_bucket_policy" "site" {
       }
     ]
   })
+}
+
+# ─── Route 53 — uniquement en prod ───────────────────────────────────────────
+
+# Enregistrement apex : aikido-regnacais.fr → CloudFront
+resource "aws_route53_record" "apex" {
+  count   = local.is_prod ? 1 : 0
+  zone_id = var.route53_zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+# Enregistrement www : www.aikido-regnacais.fr → CloudFront
+resource "aws_route53_record" "www" {
+  count   = local.is_prod ? 1 : 0
+  zone_id = var.route53_zone_id
+  name    = "www.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.site.domain_name
+    zone_id                = aws_cloudfront_distribution.site.hosted_zone_id
+    evaluate_target_health = false
+  }
 }

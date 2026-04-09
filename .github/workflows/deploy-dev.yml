@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
 
 env:
-  TF_ENV: dev
   AWS_REGION: eu-west-3
   WORKING_DIR_INFRA: aikido-infra
   WORKING_DIR_APP: aikido
+  TF_VAR_FILE: env/dev.tfvars
 
 jobs:
   # ── 1. Build du site ────────────────────────────────────────────────────────
@@ -24,12 +24,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: ${{ env.WORKING_DIR_APP }}/package-lock.json
 
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIR_APP }}
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build
         working-directory: ${{ env.WORKING_DIR_APP }}
@@ -42,7 +40,7 @@ jobs:
           path: ${{ env.WORKING_DIR_APP }}/dist
           retention-days: 1
 
-  # ── 2. Terraform plan + apply ───────────────────────────────────────────────
+  # ── 2. Terraform apply ──────────────────────────────────────────────────────
   infra:
     name: Terraform Apply (dev)
     runs-on: ubuntu-latest
@@ -59,7 +57,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - uses: hashicorp/setup-terraform@v3
@@ -70,14 +68,9 @@ jobs:
         working-directory: ${{ env.WORKING_DIR_INFRA }}
         run: terraform init
 
-      - name: Terraform Workspace
-        working-directory: ${{ env.WORKING_DIR_INFRA }}
-        run: |
-          terraform workspace select ${{ env.TF_ENV }} || terraform workspace new ${{ env.TF_ENV }}
-
       - name: Terraform Plan
         working-directory: ${{ env.WORKING_DIR_INFRA }}
-        run: terraform plan -var="environment=${{ env.TF_ENV }}" -out=tfplan
+        run: terraform plan -var-file="${{ env.TF_VAR_FILE }}" -out=tfplan
 
       - name: Terraform Apply
         working-directory: ${{ env.WORKING_DIR_INFRA }}
@@ -111,7 +104,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Download build artifact

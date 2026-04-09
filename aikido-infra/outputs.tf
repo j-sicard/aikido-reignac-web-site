@@ -9,6 +9,11 @@ output "distribution_id" {
 }
 
 output "site_url" {
-  description = "URL HTTPS du site"
-  value       = "https://${aws_cloudfront_distribution.site.domain_name}"
+  description = "URL du site"
+  value = var.environment == "prod" ? "https://${var.domain_name}" : "https://${aws_cloudfront_distribution.site.domain_name}"
+}
+
+output "cloudfront_domain" {
+  description = "Domaine CloudFront brut (utile pour debug)"
+  value       = aws_cloudfront_distribution.site.domain_name
 }
