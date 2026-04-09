@@ -1,6 +1,0 @@
-{
-  "app": "node bin/aikido.js",
-  "context": {
-    "@aws-cdk/aws-s3:serverAccessLogsUseBucketPolicy": true
-  }
-}
