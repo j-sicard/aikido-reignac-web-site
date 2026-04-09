@@ -1,0 +1,133 @@
+name: Deploy — Dev
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+env:
+  TF_ENV: dev
+  AWS_REGION: eu-west-3
+  WORKING_DIR_INFRA: aikido-infra
+  WORKING_DIR_APP: aikido
+
+jobs:
+  # ── 1. Build du site ────────────────────────────────────────────────────────
+  build:
+    name: Build React App
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ${{ env.WORKING_DIR_APP }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIR_APP }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ env.WORKING_DIR_APP }}
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-dev
+          path: ${{ env.WORKING_DIR_APP }}/dist
+          retention-days: 1
+
+  # ── 2. Terraform plan + apply ───────────────────────────────────────────────
+  infra:
+    name: Terraform Apply (dev)
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: build
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.6"
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIR_INFRA }}
+        run: terraform init
+
+      - name: Terraform Workspace
+        working-directory: ${{ env.WORKING_DIR_INFRA }}
+        run: |
+          terraform workspace select ${{ env.TF_ENV }} || terraform workspace new ${{ env.TF_ENV }}
+
+      - name: Terraform Plan
+        working-directory: ${{ env.WORKING_DIR_INFRA }}
+        run: terraform plan -var="environment=${{ env.TF_ENV }}" -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: ${{ env.WORKING_DIR_INFRA }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Export Terraform outputs
+        working-directory: ${{ env.WORKING_DIR_INFRA }}
+        id: tf_outputs
+        run: |
+          echo "bucket_name=$(terraform output -raw bucket_name)" >> $GITHUB_OUTPUT
+          echo "distribution_id=$(terraform output -raw distribution_id)" >> $GITHUB_OUTPUT
+          echo "site_url=$(terraform output -raw site_url)" >> $GITHUB_OUTPUT
+
+    outputs:
+      bucket_name: ${{ steps.tf_outputs.outputs.bucket_name }}
+      distribution_id: ${{ steps.tf_outputs.outputs.distribution_id }}
+      site_url: ${{ steps.tf_outputs.outputs.site_url }}
+
+  # ── 3. Deploy S3 + invalidation CloudFront ──────────────────────────────────
+  deploy:
+    name: Deploy to S3 (dev)
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: infra
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEV }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-dev
+          path: dist
+
+      - name: Sync to S3
+        run: aws s3 sync dist/ s3://${{ needs.infra.outputs.bucket_name }} --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.infra.outputs.distribution_id }} \
+            --paths "/*"
+
+      - name: Summary
+        run: echo "✅ Deployed to ${{ needs.infra.outputs.site_url }}"

@@ -1,0 +1,5 @@
+# Copier ce fichier en terraform.tfvars et adapter les valeurs
+# Ne jamais committer terraform.tfvars en production
+
+environment = "dev"
+aws_region  = "eu-west-3"

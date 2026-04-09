@@ -1,2 +1,11 @@
 .vscode
 **/bin
+
+# Terraform
+aikido-infra/.terraform/
+aikido-infra/.terraform.lock.hcl
+aikido-infra/terraform.tfstate
+aikido-infra/terraform.tfstate.backup
+aikido-infra/terraform.tfvars
+aikido-infra/tfplan
+aikido-infra/*.tfplan
