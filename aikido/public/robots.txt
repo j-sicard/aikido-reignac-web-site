@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /mentions-legales
+Disallow: /politique-confidentialite
+
+Sitemap: https://d1ges4chvr5pnl.cloudfront.net/sitemap.xml
