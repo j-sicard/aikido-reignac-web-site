@@ -8,14 +8,13 @@ terraform {
     }
   }
 
-  # Backend S3 — décommenter et adapter pour stocker le state à distance
-  # backend "s3" {
-  #   bucket         = "aikido-terraform-state"
-  #   key            = "aikido/${var.environment}/terraform.tfstate"
-  #   region         = "eu-west-3"
-  #   dynamodb_table = "aikido-terraform-locks"
-  #   encrypt        = true
-  # }
+  # Backend S3 pour stocker le state à distance
+  backend "s3" {
+    bucket  = "aikido-terraform-state"
+    region  = "eu-west-3"
+    encrypt = true
+    # key est passé via -backend-config dans le workflow
+  }
 }
 
 provider "aws" {
