@@ -94,7 +94,14 @@ jobs:
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIR_INFRA }}
-        run: terraform init
+        run: terraform init -backend-config="key=aikido/dev/terraform.tfstate"
+
+      - name: Import existing resources if needed
+        working-directory: ${{ env.WORKING_DIR_INFRA }}
+        continue-on-error: true
+        run: |
+          terraform import -var-file="${{ env.TF_VAR_FILE }}" aws_s3_bucket.site aikido-regnacais-dev
+          terraform import -var-file="${{ env.TF_VAR_FILE }}" aws_cloudfront_origin_access_control.site $(aws cloudfront list-origin-access-controls --query "OriginAccessControlList.Items[?Name=='aikido-oac-dev'].Id" --output text)
 
       - name: Terraform Plan
         working-directory: ${{ env.WORKING_DIR_INFRA }}

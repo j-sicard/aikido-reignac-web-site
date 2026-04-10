@@ -94,7 +94,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIR_INFRA }}
-        run: terraform init
+        run: terraform init -backend-config="key=aikido/prod/terraform.tfstate"
 
       - name: Terraform Plan
         working-directory: ${{ env.WORKING_DIR_INFRA }}
@@ -139,7 +139,7 @@ jobs:
 
       - name: Terraform Init
         working-directory: ${{ env.WORKING_DIR_INFRA }}
-        run: terraform init
+        run: terraform init -backend-config="key=aikido/prod/terraform.tfstate"
 
       - name: Terraform Apply
         working-directory: ${{ env.WORKING_DIR_INFRA }}
