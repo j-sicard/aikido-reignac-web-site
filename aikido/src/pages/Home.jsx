@@ -8,7 +8,7 @@ export default function Home() {
     <>
       <SEO
         title="Club d'Aïkido à Reignac (33)"
-        description="Club d'Aïkido Arts Martiaux Reignacais à Reignac en Gironde. Cours adultes et enfants, art martial non compétitif. Deux cours d'essai gratuits."
+        description="Club d'Aïkido à Reignac en Gironde. Arts martiaux traditionnels non compétitifs pour adultes et enfants. Deux cours d'essai gratuits."
         canonical="/"
       />
       <main className="grid grid-cols-1 lg:grid-cols-12 gap-y-16 lg:gap-12 mt-12 pb-24">
