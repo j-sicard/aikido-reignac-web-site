@@ -16,7 +16,7 @@ export default function PolitiqueConfidentialite() {
         <section>
           <h3 className="font-serif font-bold text-xl tracking-widest mb-3 text-ink">RESPONSABLE DU TRAITEMENT</h3>
           <p>Julien Sicard — Saint-Ciers-sur-Gironde, France</p>
-          <p>Email : <a href="mailto:aikidoreignac@gmail.com" className="border-b border-ink/30 hover:border-hanko hover:text-hanko transition-colors">aikidoreignac@gmail.com</a></p>
+          <p>Email : <a href="mailto:srdjulien@gmail.com" className="border-b border-ink/30 hover:border-hanko hover:text-hanko transition-colors">srdjulien@gmail.com</a></p>
           <p>LinkedIn : <a href="https://www.linkedin.com/in/srdjulien" target="_blank" rel="noopener noreferrer" className="border-b border-ink/30 hover:border-hanko hover:text-hanko transition-colors">linkedin.com/in/srdjulien</a></p>
         </section>
 

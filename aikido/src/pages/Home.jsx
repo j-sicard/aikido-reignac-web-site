@@ -145,10 +145,9 @@ export default function Home() {
           <div className="flex flex-col justify-center">
             <p className="font-serif text-3xl font-bold mb-4">3ème Dan UFA</p>
             <p className="text-ink/80 leading-relaxed mb-6 font-sans">
-              Pratiquant depuis plus de 35 ans, notre sensei transmet la
-              discipline dans le plus strict respect de la tradition transmise
-              par Morihei Ueshiba O-Sensei. Le dojo est un espace de recherche,
-              de paix et de respect mutuel.
+              Pratiquant l'Aîkido depuis 1985, notre sensei fait de cette
+              discipline le vecteur essentiel de sa recherche, enrichie par différentes pratiques martiales japonaises, chinoises 
+              et vietnamiennes. Le dojo est un espace de respect mutuel, de progression et d'échange.
             </p>
             <a
               href="/contact"
