@@ -47,7 +47,7 @@ export default function Pratique() {
             </p>
             <p className="text-ink/80 text-lg leading-relaxed mb-6 font-sans">
               La base de l'Aïkido repose sur l'étude des mouvements du corps
-              face à une ou plusieurs attaques. Les techniques comprennent des
+              face à un ou plusieurs attaquants. Les techniques comprennent des
               projections (Nage-waza) et des immobilisations (Katamé-waza).
             </p>
             <ul className="list-none space-y-3 font-sans text-ink/80 text-sm">
