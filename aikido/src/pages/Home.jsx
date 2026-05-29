@@ -2,6 +2,7 @@ import React from "react";
 import clubImg from "../assets/Salut.jpg";
 import ianImg from "../assets/ian.png";
 import SEO from "../components/SEO";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
@@ -151,12 +152,12 @@ export default function Home() {
                 vietnamiennes. Le dojo est un espace de respect mutuel, de
                 progression et d'échange.
               </p>
-              <a
-                href="https://reignac-aikido.fr./contact"
+              <Link
+                to="/contact"
                 className="inline-block border-b-2 border-ink pb-1 font-bold tracking-widest uppercase hover:text-hanko hover:border-hanko transition-colors duration-200 self-start"
               >
                 Venir nous rencontrer
-              </a>
+              </Link>
             </div>
           </div>
         </div>
