@@ -24,7 +24,7 @@ Visiteur
    │
    ▼
 Route 53 (DNS)
-aikido-regnacais.fr / www.aikido-regnacais.fr
+reignac-aikido.fr / www.reignac-aikido.fr.fr
    │
    ▼
 CloudFront (CDN + HTTPS)
@@ -41,28 +41,28 @@ S3 Bucket (privé)
 
 ## Services AWS utilisés
 
-| Service | Rôle |
-|---|---|
-| S3 | Stockage des fichiers statiques du build React |
-| CloudFront | CDN mondial, HTTPS, compression gzip, cache |
-| ACM | Certificat SSL/TLS pour `aikido-regnacais.fr` et `*.aikido-regnacais.fr` |
-| Route 53 | DNS — records A alias vers CloudFront (apex + www) |
-| IAM OIDC | Authentification GitHub Actions sans clé AWS |
-| S3 (state) | Stockage du Terraform state (`aikido-terraform-state`) |
+| Service    | Rôle                                                                     |
+| ---------- | ------------------------------------------------------------------------ |
+| S3         | Stockage des fichiers statiques du build React                           |
+| CloudFront | CDN mondial, HTTPS, compression gzip, cache                              |
+| ACM        | Certificat SSL/TLS pour `aikido-regnacais.fr` et `*.aikido-regnacais.fr` |
+| Route 53   | DNS — records A alias vers CloudFront (apex + www)                       |
+| IAM OIDC   | Authentification GitHub Actions sans clé AWS                             |
+| S3 (state) | Stockage du Terraform state (`aikido-terraform-state`)                   |
 
 ---
 
 ## Environnements
 
-| | Dev | Prod |
-|---|---|---|
-| Bucket | `aikido-regnacais-dev` | `aikido-regnacais-prod` |
-| Domaine | `*.cloudfront.net` | `aikido-regnacais.fr` |
-| Cache CloudFront | Désactivé | Optimisé |
-| Versioning S3 | Non | Oui |
-| Suppression bucket | Automatique | Protégée |
-| Certificat | CloudFront défaut | ACM custom |
-| Records Route 53 | Non | Oui (apex + www) |
+|                    | Dev                    | Prod                    |
+| ------------------ | ---------------------- | ----------------------- |
+| Bucket             | `aikido-regnacais-dev` | `aikido-regnacais-prod` |
+| Domaine            | `*.cloudfront.net`     | `reignac-aikido.fr`     |
+| Cache CloudFront   | Désactivé              | Optimisé                |
+| Versioning S3      | Non                    | Oui                     |
+| Suppression bucket | Automatique            | Protégée                |
+| Certificat         | CloudFront défaut      | ACM custom              |
+| Records Route 53   | Non                    | Oui (apex + www)        |
 
 ---
 
@@ -85,11 +85,13 @@ aikido-infra/
 Le déploiement est entièrement automatisé. L'authentification AWS utilise **OIDC** — aucune clé AWS stockée dans GitHub.
 
 **Pipeline dev** (push sur `dev`) :
+
 ```
 Tests (32) → Build → Terraform apply → S3 sync → Invalidation cache
 ```
 
 **Pipeline prod** (merge PR dev → master) :
+
 ```
 Tests (32) → Build → Terraform plan → [Approbation manuelle] → Terraform apply → S3 sync → Invalidation cache
 ```
